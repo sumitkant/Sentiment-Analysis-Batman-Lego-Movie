@@ -1,0 +1,21 @@
+body{
+  font-family: Raleway;
+  font-size: 16pt;
+  color: #444;
+}
+/* Headers */
+h1{
+	font-family: Raleway Black;
+	font-size: 24pt;
+	color: #672E91;
+}
+h2{
+	font-family: Raleway Black;
+	font-size: 20pt;
+	color: #DA1C5C;
+}
+h3,h4,h5,h6{
+	font-family: Raleway Black;
+	font-size: 16pt;
+	color: #8BC441;
+} 

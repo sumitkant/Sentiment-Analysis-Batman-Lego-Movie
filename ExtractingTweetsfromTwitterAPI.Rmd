@@ -1,0 +1,50 @@
+---
+title: "Extracting Tweets from Twitter API"
+author: "Sumit Kant"
+date: "27 April 2017"
+output: 
+  html_document:
+    css: theme.css
+---
+  
+# 1. Introduction
+  
+This is short guide to extract tweets from Twitter API using R. I will be using "lego batman movie" as the search term here. The extracted tweets can used to text mining and Sentiment Analysis which is done in a later post. 
+
+Before extracting the tweets you must have a twitter account.
+
+# 2. Extracting Tweets from Twitter API
+
+
+
+## Step 1: Load require Libraries
+```{r message=FALSE}
+library(twitteR)
+library(ROAuth)
+library(httr)
+```
+## Step 2: Set API Keys
+```{r warning=FALSE}
+consumerKey <- "G8iPPnWlNsSJpbHMHAb0JLoHh"
+consumerSecret <- "w3KTC2TSBRKw9CShDeoWThFh96EBrH633X7j7zToNWtulaqhjV"
+accessKey <- "449531980-uoNSdT1P5xgmeZfIyhrKjRvxyiFV7yBvJ0RqbWpZ"
+accessSecret <- "BQOMQGbzUQmJi1q7pgZphIbF7MkHhqiwQTp9r7BmdJWLq"
+
+# Setting up access for the session
+setup_twitter_oauth(consumerKey,consumerSecret,accessKey,accessSecret)
+```
+## step 3: Grabbing Latest Tweets
+
+```{r warning=FALSE}
+search.string = "#legobatmanmovie"
+tweets<-searchTwitter(search.string, 500, lang ="en")
+```
+## Step 4: Saving as .csv file
+```{r}
+# Saving tweetts in a csv file
+setwd('D:/Data Analyst/Own Data/Sentiment Analysis Batman Lego Movie/')
+name<-file(description="batmanLegotweets.csv",open="w")
+write.csv(twListToDF(tweets),file=name)
+close(con = name)
+```
+

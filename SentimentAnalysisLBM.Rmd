@@ -1,0 +1,138 @@
+---
+title: "Sentiment Analysis for Lego Batman Movie"
+author: "Sumit Kant"
+date: "27 April 2017"
+output: 
+  html_document:
+    css: theme.css
+---
+
+# 1. Introduction
+
+THe Lego Batman Movie is a 3D computer-animated superhero comdey film released in 2017.
+The Facebook page of the movie has 430,000+ followers and almost same numbers are talking about this. The movie was released in 17 February in India. The tweets for the sentiment analysis will be taken from 18th Feb.
+
+# 2. Extracting Tweets from Twitter API
+
+## Step 1: Load require Libraries
+```{r message=FALSE}
+library(twitteR)
+library(ROAuth)
+library(httr)
+```
+## Step 2: Set API Keys
+```{r warning=FALSE}
+consumerKey <- "G8iPPnWlNsSJpbHMHAb0JLoHh"
+consumerSecret <- "w3KTC2TSBRKw9CShDeoWThFh96EBrH633X7j7zToNWtulaqhjV"
+accessKey <- "449531980-uoNSdT1P5xgmeZfIyhrKjRvxyiFV7yBvJ0RqbWpZ"
+accessSecret <- "BQOMQGbzUQmJi1q7pgZphIbF7MkHhqiwQTp9r7BmdJWLq"
+
+# Setting up access for the session
+setup_twitter_oauth(consumerKey,consumerSecret,accessKey,accessSecret)
+```
+## step 3: Grabbing Latest Tweets and saving as text file
+
+```{r warning=FALSE}
+search.string = "lego batman movie"
+tweets<-searchTwitter(search.string, 3000, lang ="en")
+
+# Saving tweetts in a csv file
+setwd('D:/Data Analyst/Own Data/Sentiment Analysis Batman Lego Movie/')
+name<-file(description="tweets.csv",open="w")
+write.csv(twListToDF(tweets),file=name)
+close(con = name)
+```
+# 3. Conducting Analysis using 'tm' package
+
+### Step 1: Load required libraries
+```{r eval=FALSE, message =FALSE}
+#loading libraries
+library('stringr')
+library('readr')
+library('wordcloud')
+library('tm')
+library('SnowballC')
+library('RWeka')
+library('RSentiment')
+library(DT)
+library(ggplot2)
+library(readr)
+
+# load data
+lbm = read_csv("tweets.csv")
+windowsFonts(Lato.Regular = windowsFont('Lato Regular'))
+```
+
+### Step 2: Preprocessing Data
+
+```{r warning=FALSE}
+#extracting relevant data
+r1 = as.character(lbm$text)
+
+#Data Preprocessing
+sample = sample(r1, (length(r1)))
+corpus = Corpus(VectorSource(list(sample)))
+corpus = tm_map(corpus, removePunctuation)
+corpus = tm_map(corpus, content_transformer(tolower))
+corpus = tm_map(corpus, removeNumbers)
+corpus = tm_map(corpus, stripWhitespace)
+corpus = tm_map(corpus, removeWords, stopwords('english'))
+corpus = tm_map(corpus, stemDocument)
+dtm_up = DocumentTermMatrix(VCorpus(VectorSource(corpus[[1]]$content)))
+freq_up <- colSums(as.matrix(dtm_up))
+```
+### Step 3: Sentiment
+```{r warning=FALSE}
+#Calculating Sentiments - Approach 1
+sentiments_up = calculate_sentiment(names(freq_up))
+sentiments_up = cbind(sentiments_up, as.data.frame(freq_up))
+sent_pos_up = sentiments_up[sentiments_up$sentiment == 'Positive',]
+sent_neg_up = sentiments_up[sentiments_up$sentiment == 'Negative',]
+```
+## Positive Sentiments
+```{r warning=FALSE}
+ggplot(aes(x = freq_up, y = text, label = freq_up, color=freq_up), 
+       data = sent_pos_up[sent_pos_up$freq_up>5,]) + 
+  geom_point(size=4) +
+  geom_text(size=3, position = position_nudge(x = 4), family = "Lato.Regular") +
+  theme_gray(base_family = "Lato.Regular") +
+  ylab("Positive Sentiments") +
+  xlab("Frequencies")
+ggsave(filename = "Positive sentiments with Freq more than 5.jpeg", width = 7, height = 4)
+```
+### Creating WordCloud of Positive sentiments
+```{r warning=FALSE}
+## Wordcloud positive sentiments
+layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
+par(mar=rep(0, 4))
+plot.new()
+wordcloud(sent_pos_up$text,sent_pos_up$freq,min.freq=5,colors=brewer.pal(6,"Dark2"))
+ggsave(filename = "Positive sentiments wordcloud.jpeg", width = 7, height = 4)
+
+```
+
+
+## Negative Sentiments
+```{r warning=FALSE}
+
+## Negative Sentiments
+ggplot(aes(x = freq_up, y = text, label = freq_up, color=freq_up), 
+       data = sent_neg_up[sent_neg_up$freq_up>5,]) + 
+  geom_point(size=4) +
+  geom_text(size=3, position = position_nudge(x = 4), family = "Lato.Regular") +
+  theme_gray(base_family = "Lato.Regular") +
+  ylab("Negative Sentiments") +
+  xlab("Frequencies")
+ggsave(filename = "Negative sentiments with Freq more than 5.jpeg", width = 7, height = 4)
+
+```
+### Creating WordCloud of Negative sentiments
+```{r warning=FALSE}
+## Wordcloud negative sentiments
+layout(matrix(c(1, 2), nrow=2), heights=c(1, 4))
+par(mar=rep(0, 4))
+plot.new()
+set.seed(100)
+wordcloud(sent_neg_up$text,sent_neg_up$freq, min.freq=5,colors=brewer.pal(6 ,"Dark2"))
+```
+
